@@ -2,6 +2,8 @@
 
 Self-contained tool to fetch, analyze, and visualize Android version distribution for my-app active users from Google Analytics.
 
+[![Screenshot](docs/screenshot.png)](docs/screenshot.png)
+
 ## 🚀 Quick Start
 
 **Everything you need is in this folder!**
