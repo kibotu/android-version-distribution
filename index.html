@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Version Distribution - My App App</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1B5E20 0%, #388E3C 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+            max-width: 1200px;
+            width: 100%;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #1B5E20;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .date-range {
+            text-align: center;
+            color: #999;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1B5E20 0%, #43A047 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(27, 94, 32, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 100%;
+        }
+
+        .legend-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .legend-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1B5E20;
+            margin-bottom: 1rem;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .legend-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            margin-right: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-info {
+            flex: 1;
+        }
+
+        .legend-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .legend-percentage {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .legend-users {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .legend-release {
+            color: #43A047;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        .legend-age {
+            color: #999;
+            font-size: 0.75rem;
+            font-style: italic;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .chart-container {
+                height: 400px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Android Version Distribution</h1>
+        <div class="subtitle">My App App Active Users</div>
+        <div class="date-range">Period: Last 30 Days</div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="versionChart"></canvas>
+            </div>
+        </div>
+
+        <div class="legend-container">
+            <div class="legend-title">Detailed Breakdown</div>
+            <div class="legend-grid" id="legendGrid"></div>
+        </div>
+
+        <div class="footer">
+            Generated from android_versions_report.csv | Data represents active users by major OS version<br>
+            <small id="dateRangeFooter"></small>
+        </div>
+    </div>
+
+    <!-- Embedded CSV Data (auto-updated by run.sh) -->
+    <script type="text/plain" id="csvData">
+        # ----------------------------------------
+        # Active OS Versions - Android Devices
+        # 20250924-20251024
+        # ----------------------------------------
+        
+        OS version,Active users
+        Grand total,17180200
+        15,7085600
+        16,2441200
+        14,1876800
+        13,1706800
+        12,771800
+        11,598400
+        10,584800
+        8.1.0,370600
+        8.0.0,360400
+        9,197200
+        15,187000
+        8.0.0,180200
+        14,115600
+        8.1.0,105400
+        13,88400
+        12,85000
+        11,81600
+        7.0,81600
+        7.0,68000
+        10,64600
+        7.1.1,37400
+        6.0.1,23800
+        7.1.1,13600
+        9,13600
+        6.0,10200
+        6.0.1,10200
+        6.0,6800
+        7.1.2,6800
+        16,3400
+        9,3400
+        5.0.2,0
+</script>
+
+    <script>
+        // Release dates for Android versions with API levels
+        const releaseDates = {
+            "Android 16": { date: "2025-06-01", name: "Android 16", apiLevel: "API 36" },
+            "Android 15": { date: "2024-10-15", name: "Android 15", apiLevel: "API 35" },
+            "Android 14": { date: "2023-10-04", name: "Android 14", apiLevel: "API 34" },
+            "Android 13": { date: "2022-08-15", name: "Android 13", apiLevel: "API 33" },
+            "Android 12": { date: "2021-10-04", name: "Android 12", apiLevel: "API 31-32" },
+            "Android 11": { date: "2020-09-08", name: "Android 11", apiLevel: "API 30" },
+            "Android 10": { date: "2019-09-03", name: "Android 10", apiLevel: "API 29" },
+            "Android 9": { date: "2018-08-06", name: "Android 9 Pie", apiLevel: "API 28" },
+            "Android 8": { date: "2017-08-21", name: "Android 8 Oreo", apiLevel: "API 26-27" },
+            "Android 7": { date: "2016-08-22", name: "Android 7 Nougat", apiLevel: "API 24-25" },
+            "Android 6": { date: "2015-10-05", name: "Android 6 Marshmallow", apiLevel: "API 23" },
+            "Android 5": { date: "2014-11-12", name: "Android 5 Lollipop", apiLevel: "API 21-22" }
+        };
+
+        // Calculate age in years from release date to current date
+        function calculateAge(releaseDate) {
+            const release = new Date(releaseDate);
+            const current = new Date();
+            const diffTime = current - release;
+            const diffYears = diffTime / (1000 * 60 * 60 * 24 * 365.25);
+            return diffYears.toFixed(1);
+        }
+
+        // Android brand-inspired color palette
+        // Note: Android doesn't assign official colors to each version
+        // Using official Android Green (#3DDC84 / #34A853) as base with Material Design palette
+        const versionColors = {
+            "Android 16": '#3DDC84',  // Android Green (official brand color)
+            "Android 15": '#34A853',  // Updated Android Green
+            "Android 14": '#A142F4',  // Purple (Material You accent)
+            "Android 13": '#EA4335',  // Red (Google brand)
+            "Android 12": '#4285F4',  // Blue (Material You primary)
+            "Android 11": '#FBBC04',  // Yellow (Google brand)
+            "Android 10": '#46BDC6',  // Teal (Material Design)
+            "Android 9": '#5E97F6',   // Light Blue
+            "Android 8": '#8BC34A',   // Light Green
+            "Android 7": '#FB8C00',   // Orange
+            "Android 6": '#AB47BC',   // Purple
+            "Android 5": '#EF5350'    // Red
+        };
+        
+        // Fallback color array for unknown versions
+        const fallbackColors = [
+            '#3DDC84', '#34A853', '#A142F4', '#EA4335', '#4285F4', '#FBBC04',
+            '#46BDC6', '#5E97F6', '#8BC34A', '#FB8C00', '#AB47BC', '#EF5350'
+        ];
+
+        /**
+         * Parse CSV file and extract Android version distribution
+         * Mimics the logic from analyze.py
+         */
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const versionData = {};
+            let totalUsers = 0;
+            let dateRange = '';
+            let propertyId = '';
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                
+                // Skip empty lines
+                if (!trimmed) continue;
+                
+                // Extract property ID (optional, for internal tracking only)
+                if (trimmed.startsWith('# Property ID:')) {
+                    propertyId = trimmed.replace('# Property ID:', '').trim();
+                }
+                
+                // Extract date range
+                if (trimmed.match(/^# \d{8}-\d{8}$/)) {
+                    const dateStr = trimmed.replace('# ', '');
+                    const startDate = dateStr.substring(0, 8);
+                    const endDate = dateStr.substring(9, 17);
+                    dateRange = formatDateRange(startDate, endDate);
+                }
+                
+                // Skip comment lines and header
+                if (trimmed.startsWith('#') || trimmed.startsWith('OS version')) {
+                    continue;
+                }
+                
+                // Skip grand total line
+                if (trimmed.includes('Grand total')) {
+                    continue;
+                }
+                
+                // Parse data lines
+                const parts = trimmed.split(',');
+                if (parts.length >= 2) {
+                    const version = parts[0].trim();
+                    const usersStr = parts[1].trim();
+                    
+                    // Try to parse user count
+                    const users = parseInt(usersStr);
+                    if (isNaN(users) || !version || users <= 0) {
+                        continue;  // Skip versions with 0 or negative users
+                    }
+                    
+                    // Extract major version (e.g., "14.0" -> "14", "13" -> "13")
+                    const majorVersion = version.split('.')[0];
+                    
+                    if (majorVersion && /^\d+$/.test(majorVersion)) {
+                        if (!versionData[majorVersion]) {
+                            versionData[majorVersion] = 0;
+                        }
+                        versionData[majorVersion] += users;
+                        totalUsers += users;
+                    }
+                }
+            }
+            
+            return { versionData, totalUsers, dateRange, propertyId };
+        }
+
+        /**
+         * Format date range from YYYYMMDD strings
+         */
+        function formatDateRange(startStr, endStr) {
+            const formatDate = (str) => {
+                const year = str.substring(0, 4);
+                const month = str.substring(4, 6);
+                const day = str.substring(6, 8);
+                const date = new Date(year, month - 1, day);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            };
+            
+            return `${formatDate(startStr)} - ${formatDate(endStr)}`;
+        }
+
+        /**
+         * Calculate percentage distribution and prepare chart data
+         */
+        function prepareChartData(versionData, totalUsers) {
+            // Calculate percentages and sort by user count (descending) to show most popular first
+            const versions = Object.keys(versionData)
+                .map(v => ({
+                    version: parseInt(v),
+                    users: versionData[v],
+                    percentage: (versionData[v] / totalUsers) * 100
+                }))
+                .sort((a, b) => b.users - a.users); // Sort by users, most popular first
+            
+            const chartData = {
+                labels: versions.map(v => `Android ${v.version}`),
+                data: versions.map(v => v.percentage),
+                users: versions.map(v => v.users),
+                total: totalUsers
+            };
+            
+            return chartData;
+        }
+
+        /**
+         * Load and parse the CSV file
+         * First tries to read from embedded script tag, then falls back to fetch
+         */
+        async function loadData() {
+            try {
+                let csvText = '';
+                
+                // Try to read from embedded script tag first
+                const embeddedCSV = document.getElementById('csvData');
+                if (embeddedCSV && embeddedCSV.textContent.trim()) {
+                    csvText = embeddedCSV.textContent;
+                    console.log('Using embedded CSV data');
+                } else {
+                    // Fallback to fetch (requires HTTP server or browser that allows file:// fetch)
+                    try {
+                        const response = await fetch('android_versions_report.csv');
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        csvText = await response.text();
+                        console.log('Loaded CSV via fetch');
+                    } catch (fetchError) {
+                        throw new Error(`Cannot load CSV file. Please run the update script or use a local HTTP server. Details: ${fetchError.message}`);
+                    }
+                }
+                
+                if (!csvText.trim()) {
+                    throw new Error('CSV data is empty');
+                }
+                
+                const { versionData, totalUsers, dateRange, propertyId } = parseCSV(csvText);
+                
+                // Update date range in the UI
+                if (dateRange) {
+                    document.querySelector('.date-range').textContent = `Period: ${dateRange}`;
+                    document.getElementById('dateRangeFooter').textContent = `Data Period: ${dateRange}`;
+                }
+                
+                // Prepare and return chart data
+                const chartData = prepareChartData(versionData, totalUsers);
+                return chartData;
+            } catch (error) {
+                console.error('Error loading data:', error);
+                
+                // Show detailed error message
+                const errorMsg = `Failed to load Android version data.\n\n` +
+                    `Error: ${error.message}\n\n` +
+                    `Solutions:\n` +
+                    `1. Run './run.sh' to update data\n` +
+                    `2. Or start a local server: 'python3 -m http.server 8000'\n` +
+                    `   Then open: http://localhost:8000/index.html`;
+                
+                alert(errorMsg);
+                
+                // Return empty data to prevent crashes
+                return {
+                    labels: [],
+                    data: [],
+                    users: [],
+                    total: 0
+                };
+            }
+        }
+
+        function createStatsCards(data) {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            const totalUsers = data.total;
+            const majorVersions = data.labels.length;
+            
+            // Find the actual most popular version by highest percentage
+            const maxIndex = data.data.indexOf(Math.max(...data.data));
+            const topVersion = data.labels[maxIndex];
+            const topPercentage = data.data[maxIndex].toFixed(1);
+
+            const stats = [
+                { value: totalUsers.toLocaleString(), label: 'Total Active Users' },
+                { value: majorVersions, label: 'Major Android Versions' },
+                { value: topVersion, label: 'Most Popular Version' },
+                { value: `${topPercentage}%`, label: 'Top Version Share' }
+            ];
+
+            statsGrid.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function createLegend(data) {
+            const legendGrid = document.getElementById('legendGrid');
+            
+            legendGrid.innerHTML = data.labels.map((label, index) => {
+                const percentage = data.data[index].toFixed(2);
+                const users = data.users[index].toLocaleString();
+                const releaseInfo = releaseDates[label] || { date: "2015-01-01", name: label, apiLevel: "API ?" };
+                const age = calculateAge(releaseInfo.date);
+                const releaseDate = new Date(releaseInfo.date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                const displayName = releaseInfo.apiLevel ? `${releaseInfo.name} (${releaseInfo.apiLevel})` : releaseInfo.name || label;
+                const color = versionColors[label] || fallbackColors[index % fallbackColors.length];
+                
+                return `
+                    <div class="legend-item" onclick="toggleDataset(${index})">
+                        <div class="legend-color" style="background-color: ${color}"></div>
+                        <div class="legend-info">
+                            <div class="legend-label">${displayName}</div>
+                            <div class="legend-percentage">${percentage}%</div>
+                            <div class="legend-users">${users} users</div>
+                            <div class="legend-release">Released: ${releaseDate} <span class="legend-age">(${age} years old)</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let chart;
+
+        function toggleDataset(index) {
+            const meta = chart.getDatasetMeta(0);
+            meta.data[index].hidden = !meta.data[index].hidden;
+            chart.update();
+        }
+
+        async function initChart() {
+            const data = await loadData();
+            
+            createStatsCards(data);
+            createLegend(data);
+
+            const ctx = document.getElementById('versionChart').getContext('2d');
+            
+            // Map each version label to its specific color
+            const chartColors = data.labels.map((label, index) => 
+                versionColors[label] || fallbackColors[index % fallbackColors.length]
+            );
+            
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: chartColors,
+                        borderColor: 'white',
+                        borderWidth: 3,
+                        hoverBorderWidth: 4,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const users = data.users[context.dataIndex].toLocaleString();
+                                    return [
+                                        `${label}: ${value.toFixed(2)}%`,
+                                        `Users: ${users}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        // Initialize chart when page loads
+        initChart();
+    </script>
+</body>
+</html>
+
