@@ -196,5 +196,5 @@ For questions or issues:
 ---
 
 **Last Updated**: October 2025  
-**Version**: 1.0 (Initial release based on iOS version distribution)
+**Version**: 1.0 (Initial release based on Android version distribution)
 
